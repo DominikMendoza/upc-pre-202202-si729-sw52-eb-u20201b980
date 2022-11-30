@@ -2,6 +2,8 @@ package com.ecodrive.platform.u20201b980.behaviour.controller;
 
 import com.ecodrive.platform.u20201b980.behaviour.entities.Score;
 import com.ecodrive.platform.u20201b980.behaviour.service.IScoreService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponses;
@@ -52,22 +54,27 @@ public class ScoreController {
     })
     public ResponseEntity<String> RequestByScope(@PathVariable("driverId") Long driverId, @RequestParam("scope") Long scope){
 
+        ObjectMapper mapper = new ObjectMapper();
+        if (scope < 0 || scope > 1) {
+            return new ResponseEntity<>("Scope value not specified correctly", HttpStatus.BAD_REQUEST);
+        }
+        else {
         try{
-            if (scope < 0 || scope > 1) {
-                return new ResponseEntity<>("Scope value not specified correctly", HttpStatus.BAD_REQUEST);
-            }
             var scores = scoreService.getByDriverId(driverId);
             if (scope == 1){
                 double max  = scores.stream().mapToDouble(Score::getValue).max().orElse(0.0);
                 Float maxScore = (float) max;
                 Score score = scoreService.getByValue(maxScore);
-                return new ResponseEntity<>(score.toString(), HttpStatus.OK);
+                String json = mapper.writeValueAsString(score);
+                return new ResponseEntity<>(json, HttpStatus.OK);
             }
             double average = scores.stream().mapToDouble(Score::getValue).average().orElse(0.0);
             Float averageScore = (float) average;
-            return new ResponseEntity<>(new Score(0L, averageScore, new Date(), 0L).toString(), HttpStatus.OK);
+            Score scorem = new Score(0L, averageScore, new Date(), 0L);
+            String json = mapper.writeValueAsString(scorem);
+            return new ResponseEntity<>(json, HttpStatus.OK);
         }catch (Exception ex){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        }}
     }
 }
