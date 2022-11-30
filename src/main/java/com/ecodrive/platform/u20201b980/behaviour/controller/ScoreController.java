@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -42,25 +43,29 @@ public class ScoreController {
         }
     }
 
-    @GetMapping(value = "scope{scope}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "List scores by scope", notes = "Method for list scores by scope")
     @ApiResponses({
             @io.swagger.annotations.ApiResponse(code = 200, message = "Scores found"),
             @io.swagger.annotations.ApiResponse(code = 404, message = "Scores not found"),
             @io.swagger.annotations.ApiResponse(code = 500, message = "Internal Server Error")
     })
-    public ResponseEntity<Score> RequestByScope(@PathVariable("driverId") Long driverId, @PathVariable("scope") Long scope){
+    public ResponseEntity<String> RequestByScope(@PathVariable("driverId") Long driverId, @RequestParam("scope") Long scope){
 
         try{
-            /*if (scope == 1){
-                Score score = scoreService.findByDriverIdAndScope(driverId, scope);
-                return new ResponseEntity<>(score, HttpStatus.OK);
-            }else if (scope == 0){
-
+            if (scope < 0 || scope > 1) {
+                return new ResponseEntity<>("Scope value not specified correctly", HttpStatus.BAD_REQUEST);
             }
-
-             */
-            return new ResponseEntity<>(HttpStatus.OK);
+            var scores = scoreService.getByDriverId(driverId);
+            if (scope == 1){
+                double max  = scores.stream().mapToDouble(Score::getValue).max().orElse(0.0);
+                Float maxScore = (float) max;
+                Score score = scoreService.getByValue(maxScore);
+                return new ResponseEntity<>(score.toString(), HttpStatus.OK);
+            }
+            double average = scores.stream().mapToDouble(Score::getValue).average().orElse(0.0);
+            Float averageScore = (float) average;
+            return new ResponseEntity<>(new Score(0L, averageScore, new Date(), 0L).toString(), HttpStatus.OK);
         }catch (Exception ex){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

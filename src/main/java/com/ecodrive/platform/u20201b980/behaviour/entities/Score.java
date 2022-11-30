@@ -19,6 +19,7 @@ public class Score {
     private Long id;
     @Column (name = "value", nullable = false)
     private Float value;
+    @JsonIgnore
     @Column (name = "register_at", nullable = false)
     private Date registerAt;
     @JsonIgnore

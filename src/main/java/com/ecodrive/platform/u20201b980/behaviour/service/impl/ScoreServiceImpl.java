@@ -46,6 +46,6 @@ public class ScoreServiceImpl implements IScoreService {
 
     @Override
     public Score getByValue(Float value) throws Exception {
-        return scoreRepository.findByValue(value);
+        return scoreRepository.findFirstByValue(value);
     }
 }

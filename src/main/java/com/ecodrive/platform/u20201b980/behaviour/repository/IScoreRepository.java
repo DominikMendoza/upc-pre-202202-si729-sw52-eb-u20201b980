@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface IScoreRepository extends JpaRepository<Score, Long> {
     List<Score> findByDriverId(Long driverId) throws Exception;
-    Score findByValue(Float value) throws Exception;
+    Score findFirstByValue(Float value) throws Exception;
 }
